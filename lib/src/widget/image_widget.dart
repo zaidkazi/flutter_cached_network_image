@@ -1,8 +1,9 @@
 import 'dart:typed_data';
 
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cached_network_image/src/widget/blurhash_image_provider.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_blurhash/flutter_blurhash.dart';
+import 'package:image/image.dart' as graphics;
 
 import 'fade_widget.dart';
 
@@ -223,7 +224,7 @@ class _BetaImageWidgetState extends State<BetaImageWidget> {
 
   Widget _stack(Widget revealing, Widget disappearing) {
     return Stack(
-      fit: StackFit.expand,
+      fit: StackFit.passthrough,
       alignment: Alignment.center,
       children: [
         FadeWidget(
@@ -323,19 +324,17 @@ class _BetaImageWidgetState extends State<BetaImageWidget> {
   }
 
   Widget _placeholder(BuildContext context) {
-    Widget placeholder;
     if (widget.placeholder != null) {
-      placeholder = widget.placeholder(context);
+      return Center(child: widget.placeholder(context));
     }
     if (widget.blurHash != null) {
-      placeholder = BlurHash(
-        hash: widget.blurHash,
-        fadeOutDuration: Duration.zero,
-        fadeInDuration: Duration.zero,
-      );
+      return SizedBox.expand(
+          child: Image(
+        image: BlurHashImage(widget.blurHash),
+            fit: widget.fit,
+      ));
     }
-    assert(placeholder != null);
-    return Center(child: placeholder);
+    return Container();
   }
 
   PlaceholderType _definePlaceholderType() {

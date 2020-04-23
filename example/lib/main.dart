@@ -182,10 +182,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget _blurHashImage() {
     var imageWidget = BetaImageWidget(
-      image: const CachedNetworkImageProvider('https://blurha.sh/assets/images/img1.jpg',),
-//      placeholder: (context) => const Placeholder(),
+      image: const CachedNetworkImageProvider('https://blurha.sh/assets/images/img1.jpg'),
       blurHash: 'LEHV6nWB2yk8pyo0adR*.7kCMdnj',
-      fit: BoxFit.fitHeight,
+      fit: BoxFit.cover,
     );
 
     return SizedBox(

@@ -72,20 +72,16 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             _blurHashImage(),
             _sizedContainer(
+              const BetaImageWidget(
+                placeholderType:PlaceholderType.progress,
+                image: CachedNetworkImageProvider('https://images.unsplash.com/photo-1532264523420-881a47db012d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9'),
+              ),
+            ),
+            _sizedContainer(
               const Image(
                 image: CachedNetworkImageProvider(
                   'http://via.placeholder.com/350x150',
                 ),
-              ),
-            ),
-            _sizedContainer(
-              CachedNetworkImage(
-                progressIndicatorBuilder: (context, url, progress) =>
-                    CircularProgressIndicator(
-                  value: progress.progress,
-                ),
-                imageUrl:
-                    'https://images.unsplash.com/photo-1532264523420-881a47db012d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9',
               ),
             ),
             _sizedContainer(

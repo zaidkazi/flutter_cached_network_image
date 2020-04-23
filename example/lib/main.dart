@@ -77,8 +77,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 image: const CachedNetworkImageProvider('https://images.unsplash.com/photo-1532264523420-881a47db012d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9'),
               ),
             ),
-            _sizedContainer(
-              BetaImageWidget(
+            SizedBox(
+              height: 300,
+              child: BetaImageWidget(
                 progressIndicatorBuilder: (context, progress) {
                   double value;
                   if(progress != null && progress.expectedTotalBytes != null) {
@@ -86,8 +87,12 @@ class _MyHomePageState extends State<MyHomePage> {
                   }
                   return CircularProgressIndicator(value: value);
                 },
-                image: const CachedNetworkImageProvider('http://via.placeholder.com/300000x150000'),
+                image: const CachedNetworkImageProvider('http://via.placeholder.com/450x450'),
                 errorWidget: (context, error, stacktrace) => const Icon(Icons.error),
+                imageBuilder: (context, image) => CircleAvatar(
+                  backgroundImage: image,
+                  radius: 150,
+                ),
               ),
             ),
             _sizedContainer(

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/widgets.dart';
 
 import 'fade_widget.dart';
@@ -16,7 +17,8 @@ typedef Widget ProgressBuilder(
 
 class BetaImageWidget extends StatefulWidget {
   /// Optional builder to further customize the display of the image.
-  final ImageBuilder imageBuilder; //TODO can we still support this?
+  final ImageBuilder imageBuilder;
+  //TODO make this an ImageFrameBuilder and let CachedNetworkImage map it to an ImageBuilder
 
   /// Widget displayed while the target [imageUrl] is loading.
   final PlaceholderBuilder placeholder;
@@ -186,13 +188,24 @@ class _BetaImageWidgetState extends State<BetaImageWidget> {
     var placeholderType = _definePlaceholderType(
         widget.placeholder, widget.progressIndicatorBuilder);
 
+    ImageFrameBuilder frameBuilder;
+    switch(placeholderType){
+      case PlaceholderType.none:
+        frameBuilder = _imageBuilder;
+        break;
+      case PlaceholderType.static:
+        frameBuilder = _placeholderBuilder;
+        break;
+      case PlaceholderType.progress:
+        frameBuilder = _preLoadingBuilder;
+        break;
+    }
+
     return Image(
       image: widget.image,
       loadingBuilder:
           placeholderType == PlaceholderType.progress ? _loadingBuilder : null,
-      frameBuilder: placeholderType == PlaceholderType.static
-          ? _frameBuilder
-          : _preLoadingBuilder,
+      frameBuilder: frameBuilder,
       errorBuilder: _errorBuilder,
       fit: widget.fit,
       width: widget.width,
@@ -222,16 +235,24 @@ class _BetaImageWidgetState extends State<BetaImageWidget> {
     );
   }
 
-  Widget _frameBuilder(BuildContext context, Widget child, int frame,
+  Widget _imageBuilder(BuildContext context, Widget child, int frame,
+      bool wasSynchronouslyLoaded) {
+    if (frame == null) {
+      return child;
+    }
+    return _image(child);
+  }
+
+  Widget _placeholderBuilder(BuildContext context, Widget child, int frame,
       bool wasSynchronouslyLoaded) {
     if (frame == null) {
       return _placeholder(context);
     }
     if (wasSynchronouslyLoaded) {
-      return child;
+      return _image(child);
     }
     return _stack(
-      child,
+      _image(child),
       _placeholder(context),
     );
   }
@@ -249,14 +270,21 @@ class _BetaImageWidgetState extends State<BetaImageWidget> {
       BuildContext context, Widget child, ImageChunkEvent loadingProgress) {
     if (_isLoaded) {
       if (_wasSynchronouslyLoaded) {
-        return child;
+        return _image(child);
       }
       return _stack(
-        child,
+        _image(child),
         _progressIndicator(context, null),
       );
     }
     return _progressIndicator(context, loadingProgress);
+  }
+  
+  Widget _image(Widget child){
+    if(widget.imageBuilder != null) {
+      return Center(child: widget.imageBuilder(context, widget.image));
+    }
+    return child;
   }
 
   Widget _errorBuilder(context, error, stacktrace) {

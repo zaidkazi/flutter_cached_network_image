@@ -9,16 +9,13 @@ enum PlaceholderType {
   progress,
 }
 
-typedef Widget ImageBuilder(
-    BuildContext context, ImageProvider imageProvider);
+typedef Widget ImageBuilder(BuildContext context, Widget child);
 typedef Widget PlaceholderBuilder(BuildContext context);
-typedef Widget ProgressBuilder(
-    BuildContext context, ImageChunkEvent progress);
+typedef Widget ProgressBuilder(BuildContext context, ImageChunkEvent progress);
 
 class BetaImageWidget extends StatefulWidget {
   /// Optional builder to further customize the display of the image.
   final ImageBuilder imageBuilder;
-  //TODO make this an ImageFrameBuilder and let CachedNetworkImage map it to an ImageBuilder
 
   /// Widget displayed while the target [imageUrl] is loading.
   final PlaceholderBuilder placeholder;
@@ -30,19 +27,19 @@ class BetaImageWidget extends StatefulWidget {
   final ImageErrorWidgetBuilder errorWidget;
 
   /// The duration of the fade-in animation for the [placeholder].
-  final Duration placeholderFadeInDuration; //TODO do we really want this?
+  final Duration placeholderFadeInDuration;
 
   /// The duration of the fade-out animation for the [placeholder].
-  final Duration fadeOutDuration; // TODO
+  final Duration fadeOutDuration;
 
   /// The curve of the fade-out animation for the [placeholder].
-  final Curve fadeOutCurve; //TODO
+  final Curve fadeOutCurve;
 
   /// The duration of the fade-in animation for the [imageUrl].
-  final Duration fadeInDuration; //TODO
+  final Duration fadeInDuration;
 
   /// The curve of the fade-in animation for the [imageUrl].
-  final Curve fadeInCurve; //TODO
+  final Curve fadeInCurve;
 
   /// If non-null, require the image to have this width.
   ///
@@ -50,7 +47,7 @@ class BetaImageWidget extends StatefulWidget {
   /// aspect ratio. This may result in a sudden change if the size of the
   /// placeholder widget does not match that of the target image. The size is
   /// also affected by the scale factor.
-  final double width; //TODO use for placeholder and error widgets
+  final double width;
 
   /// If non-null, require the image to have this height.
   ///
@@ -58,7 +55,7 @@ class BetaImageWidget extends StatefulWidget {
   /// aspect ratio. This may result in a sudden change if the size of the
   /// placeholder widget does not match that of the target image. The size is
   /// also affected by the scale factor.
-  final double height; //TODO use for placeholder and error widgets
+  final double height;
 
   /// How to inscribe the image into the space allocated during layout.
   ///
@@ -135,7 +132,6 @@ class BetaImageWidget extends StatefulWidget {
   /// If not given a value, defaults to FilterQuality.low.
   final FilterQuality filterQuality;
 
-
   /// If [cacheWidth] or [cacheHeight] are provided, it indicates to the
   /// engine that the image must be decoded at the specified size. The image
   /// will be rendered to the constraints of the layout or [width] and [height]
@@ -164,7 +160,7 @@ class BetaImageWidget extends StatefulWidget {
     this.color,
     this.filterQuality = FilterQuality.low,
     this.colorBlendMode,
-    this.placeholderFadeInDuration,
+    this.placeholderFadeInDuration = Duration.zero,
     int cacheWidth,
     int cacheHeight,
   })  : image = ResizeImage.resizeIfNeeded(cacheWidth, cacheHeight, image),
@@ -189,7 +185,7 @@ class _BetaImageWidgetState extends State<BetaImageWidget> {
         widget.placeholder, widget.progressIndicatorBuilder);
 
     ImageFrameBuilder frameBuilder;
-    switch(placeholderType){
+    switch (placeholderType) {
       case PlaceholderType.none:
         frameBuilder = _imageBuilder;
         break;
@@ -219,16 +215,20 @@ class _BetaImageWidgetState extends State<BetaImageWidget> {
     );
   }
 
-  Widget _stack(Widget first, Widget second) {
+  Widget _stack(Widget revealing, Widget disappearing) {
     return Stack(
       fit: StackFit.expand,
       alignment: Alignment.center,
       children: [
         FadeWidget(
-          child: first,
+          child: revealing,
+          duration: widget.fadeInDuration,
+          curve: widget.fadeInCurve,
         ),
         FadeWidget(
-          child: second,
+          child: disappearing,
+          duration: widget.fadeOutDuration,
+          curve: widget.fadeOutCurve,
           direction: AnimationDirection.reverse,
         )
       ],
@@ -240,19 +240,27 @@ class _BetaImageWidgetState extends State<BetaImageWidget> {
     if (frame == null) {
       return child;
     }
-    return _image(child);
+    return _image(context, child);
   }
 
   Widget _placeholderBuilder(BuildContext context, Widget child, int frame,
       bool wasSynchronouslyLoaded) {
     if (frame == null) {
-      return _placeholder(context);
+      if (widget.placeholderFadeInDuration != Duration.zero) {
+        return FadeWidget(
+          child: _placeholder(context),
+          duration: widget.placeholderFadeInDuration,
+          curve: widget.fadeInCurve,
+        );
+      } else {
+        return _placeholder(context);
+      }
     }
     if (wasSynchronouslyLoaded) {
-      return _image(child);
+      return _image(context, child);
     }
     return _stack(
-      _image(child),
+      _image(context, child),
       _placeholder(context),
     );
   }
@@ -270,40 +278,53 @@ class _BetaImageWidgetState extends State<BetaImageWidget> {
       BuildContext context, Widget child, ImageChunkEvent loadingProgress) {
     if (_isLoaded) {
       if (_wasSynchronouslyLoaded) {
-        return _image(child);
+        return _image(context, child);
       }
       return _stack(
-        _image(child),
+        _image(context, child),
         _progressIndicator(context, null),
       );
     }
-    return _progressIndicator(context, loadingProgress);
+
+    if (widget.placeholderFadeInDuration != Duration.zero) {
+      return FadeWidget(
+        child: _progressIndicator(context, loadingProgress),
+        duration: widget.placeholderFadeInDuration,
+        curve: widget.fadeInCurve,
+      );
+    } else {
+      return _progressIndicator(context, loadingProgress);
+    }
   }
-  
-  Widget _image(Widget child){
-    if(widget.imageBuilder != null) {
-      return Center(child: widget.imageBuilder(context, widget.image));
+
+  Widget _image(BuildContext context, Widget child) {
+    if (widget.imageBuilder != null) {
+      return widget.imageBuilder(context, child);
     }
     return child;
   }
 
   Widget _errorBuilder(context, error, stacktrace) {
-    return Center(child: widget.errorWidget(context, error, stacktrace),);
+    return Center(
+      child: widget.errorWidget(context, error, stacktrace),
+    );
   }
 
-  Widget _progressIndicator(BuildContext context, ImageChunkEvent loadingProgress){
-    return Center(child: widget.progressIndicatorBuilder(context, loadingProgress));
+  Widget _progressIndicator(
+      BuildContext context, ImageChunkEvent loadingProgress) {
+    return Center(
+        child: widget.progressIndicatorBuilder(context, loadingProgress));
   }
 
-  Widget _placeholder(BuildContext context){
+  Widget _placeholder(BuildContext context) {
     return Center(child: widget.placeholder(context));
   }
 
-  PlaceholderType _definePlaceholderType(PlaceholderBuilder placeholder,
-      ProgressBuilder progressIndicator) {
+  PlaceholderType _definePlaceholderType(
+      PlaceholderBuilder placeholder, ProgressBuilder progressIndicator) {
     assert(placeholder == null || progressIndicator == null);
     if (placeholder != null) return PlaceholderType.static;
-    if(progressIndicator != null) return PlaceholderType.progress;
+    if (progressIndicator != null) return PlaceholderType.progress;
     return PlaceholderType.none;
   }
 }

@@ -65,6 +65,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _basicContent() {
+    const providerForCircleAvatar = CachedNetworkImageProvider('http://via.placeholder.com/450x450');
+
     return SingleChildScrollView(
       child: Center(
         child: Column(
@@ -79,6 +81,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             SizedBox(
               height: 300,
+              width: 300,
               child: BetaImageWidget(
                 progressIndicatorBuilder: (context, progress) {
                   double value;
@@ -87,10 +90,11 @@ class _MyHomePageState extends State<MyHomePage> {
                   }
                   return CircularProgressIndicator(value: value);
                 },
-                image: const CachedNetworkImageProvider('http://via.placeholder.com/450x450'),
+                image: providerForCircleAvatar,
                 errorWidget: (context, error, stacktrace) => const Icon(Icons.error),
-                imageBuilder: (context, image) => CircleAvatar(
-                  backgroundImage: image,
+                imageBuilder: (context, image) => const CircleAvatar(
+                  //Very ugly, but will do it like this in CachedNetworkImage
+                  backgroundImage: providerForCircleAvatar,
                   radius: 150,
                 ),
               ),

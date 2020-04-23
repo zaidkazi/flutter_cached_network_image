@@ -40,7 +40,7 @@ class _FadeWidgetState extends State<FadeWidget>
   @override
   Widget build(BuildContext context) {
     if (hideWidget) {
-      return SizedBox();
+      return const SizedBox.shrink();
     }
 
     return FadeTransition(

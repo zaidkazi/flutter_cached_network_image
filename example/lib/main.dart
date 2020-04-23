@@ -72,9 +72,22 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             _blurHashImage(),
             _sizedContainer(
-              const BetaImageWidget(
-                placeholderType:PlaceholderType.progress,
-                image: CachedNetworkImageProvider('https://images.unsplash.com/photo-1532264523420-881a47db012d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9'),
+              BetaImageWidget(
+                placeholder: (context) => const CircularProgressIndicator(),
+                image: const CachedNetworkImageProvider('https://images.unsplash.com/photo-1532264523420-881a47db012d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9'),
+              ),
+            ),
+            _sizedContainer(
+              BetaImageWidget(
+                progressIndicatorBuilder: (context, progress) {
+                  double value;
+                  if(progress != null && progress.expectedTotalBytes != null) {
+                    value = progress.cumulativeBytesLoaded / progress.expectedTotalBytes;
+                  }
+                  return CircularProgressIndicator(value: value);
+                },
+                image: const CachedNetworkImageProvider('http://via.placeholder.com/300000x150000'),
+                errorWidget: (context, error, stacktrace) => const Icon(Icons.error),
               ),
             ),
             _sizedContainer(

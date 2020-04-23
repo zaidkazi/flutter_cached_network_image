@@ -72,6 +72,7 @@ class CachedNetworkImageProvider
     assert(key == this);
     try {
       var mngr = cacheManager ?? DefaultCacheManager();
+      await Future.delayed(Duration(seconds: 5));
       await for (var result
           in mngr.getFileStream(key.url, withProgress: true)) {
         if (result is DownloadProgress) {

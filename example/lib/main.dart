@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blurhash/flutter_blurhash.dart';
 
@@ -54,6 +55,9 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget _content(int page) {
     switch (currentPage) {
       case 0:
+        return Container(
+            color: Colors.blue,
+            child: Center(child: _blurHashImage(),));
         return _basicContent();
       case 1:
         return _listViewContent();
@@ -177,15 +181,20 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _blurHashImage() {
+    var imageWidget = BetaImageWidget(
+      image: const CachedNetworkImageProvider('https://blurha.sh/assets/images/img1.jpg',),
+//      placeholder: (context) => const Placeholder(),
+      blurHash: 'LEHV6nWB2yk8pyo0adR*.7kCMdnj',
+      fit: BoxFit.fitHeight,
+    );
+
     return SizedBox(
       width: double.infinity,
-      child: CachedNetworkImage(
-        placeholder: (context, url) => const AspectRatio(
-          aspectRatio: 1.6,
-          child: BlurHash(hash: 'LEHV6nWB2yk8pyo0adR*.7kCMdnj'),
-        ),
-        imageUrl: 'https://blurha.sh/assets/images/img1.jpg',
-        fit: BoxFit.cover,
+      child: AspectRatio(
+        aspectRatio: 1.55,
+        child: Container(
+            color: Colors.red,
+            child: imageWidget),
       ),
     );
   }

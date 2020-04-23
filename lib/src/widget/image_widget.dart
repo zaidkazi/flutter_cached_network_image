@@ -1,5 +1,8 @@
+import 'dart:typed_data';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_blurhash/flutter_blurhash.dart';
 
 import 'fade_widget.dart';
 
@@ -16,6 +19,9 @@ typedef Widget ProgressBuilder(BuildContext context, ImageChunkEvent progress);
 class BetaImageWidget extends StatefulWidget {
   /// Optional builder to further customize the display of the image.
   final ImageBuilder imageBuilder;
+
+  /// BlurHash used as placeholder.
+  final String blurHash;
 
   /// Widget displayed while the target [imageUrl] is loading.
   final PlaceholderBuilder placeholder;
@@ -142,6 +148,7 @@ class BetaImageWidget extends StatefulWidget {
     Key key,
     image,
     this.imageBuilder,
+    this.blurHash,
     this.placeholder,
     this.progressIndicatorBuilder,
     this.errorWidget,
@@ -181,8 +188,7 @@ class BetaImageWidget extends StatefulWidget {
 class _BetaImageWidgetState extends State<BetaImageWidget> {
   @override
   Widget build(BuildContext context) {
-    var placeholderType = _definePlaceholderType(
-        widget.placeholder, widget.progressIndicatorBuilder);
+    var placeholderType = _definePlaceholderType();
 
     ImageFrameBuilder frameBuilder;
     switch (placeholderType) {
@@ -317,14 +323,35 @@ class _BetaImageWidgetState extends State<BetaImageWidget> {
   }
 
   Widget _placeholder(BuildContext context) {
-    return Center(child: widget.placeholder(context));
+    Widget placeholder;
+    if (widget.placeholder != null) {
+      placeholder = widget.placeholder(context);
+    }
+    if (widget.blurHash != null) {
+      placeholder = BlurHash(
+        hash: widget.blurHash,
+        fadeOutDuration: Duration.zero,
+        fadeInDuration: Duration.zero,
+      );
+    }
+    assert(placeholder != null);
+    return Center(child: placeholder);
   }
 
-  PlaceholderType _definePlaceholderType(
-      PlaceholderBuilder placeholder, ProgressBuilder progressIndicator) {
-    assert(placeholder == null || progressIndicator == null);
-    if (placeholder != null) return PlaceholderType.static;
-    if (progressIndicator != null) return PlaceholderType.progress;
+  PlaceholderType _definePlaceholderType() {
+    assert(() {
+      var nrOfPlaceholders = 0;
+      if (widget.placeholder != null) nrOfPlaceholders++;
+      if (widget.progressIndicatorBuilder != null) nrOfPlaceholders++;
+      if (widget.blurHash != null) nrOfPlaceholders++;
+      return nrOfPlaceholders <= 1;
+    }());
+
+    if (widget.placeholder != null) return PlaceholderType.static;
+    if (widget.blurHash != null) return PlaceholderType.static;
+    if (widget.progressIndicatorBuilder != null) {
+      return PlaceholderType.progress;
+    }
     return PlaceholderType.none;
   }
 }

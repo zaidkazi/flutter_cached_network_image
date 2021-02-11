@@ -62,7 +62,7 @@ class CachedNetworkImage extends StatelessWidget {
   final String imageUrl;
 
   /// bool value to determine if imageUrl is null to simply display the placeholder.
-  final bool placeHolderOnNullUrl;
+  final bool errorImageOnNullUrl;
 
   /// The target image's cache key.
   final String cacheKey;
@@ -204,7 +204,7 @@ class CachedNetworkImage extends StatelessWidget {
   CachedNetworkImage({
     Key key,
     @required this.imageUrl,
-    @required this.placeHolderOnNullUrl,
+    @required this.errorImageOnNullUrl,
     this.httpHeaders,
     this.imageBuilder,
     this.placeholder,
@@ -232,7 +232,7 @@ class CachedNetworkImage extends StatelessWidget {
     this.maxWidthDiskCache,
     this.maxHeightDiskCache,
     ImageRenderMethodForWeb imageRenderMethodForWeb,
-  })  :assert(placeHolderOnNullUrl != null),
+  })  :assert(errorImageOnNullUrl != null),
         assert(fadeOutDuration != null),
         assert(fadeOutCurve != null),
         assert(fadeInDuration != null),
@@ -242,7 +242,7 @@ class CachedNetworkImage extends StatelessWidget {
         assert(repeat != null),
         assert(matchTextDirection != null),
         _image = CachedNetworkImageProvider(
-          placeHolderOnNullUrl && imageUrl == null ? "" : imageUrl ,
+          errorImageOnNullUrl && imageUrl == null ? "" : imageUrl ,
           headers: httpHeaders,
           cacheManager: cacheManager,
           cacheKey: cacheKey,
